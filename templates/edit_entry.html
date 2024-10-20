@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Timesheet Entry</title>
+  </head>
+  <body>
+    <h2>Edit Timesheet Entry for {{ entry.date }}</h2>
+
+    <nav>
+      <a href="{{ url_for('view_summary_by_date', date=entry.date) }}"
+        >Back to Entries</a
+      >
+      <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+
+    <form method="POST">
+      <label for="billable_time">Billable Time:</label>
+      <input
+        type="number"
+        step="0.01"
+        name="billable_time"
+        id="billable_time"
+        value="{{ entry.billable_time }}"
+      />
+
+      <label for="nonbillable_admin_time">Non-billable Admin Time:</label>
+      <input
+        type="number"
+        step="0.01"
+        name="nonbillable_admin_time"
+        id="nonbillable_admin_time"
+        value="{{ entry.nonbillable_admin_time }}"
+      />
+
+      <label for="nonbillable_training_time">Non-billable Training Time:</label>
+      <input
+        type="number"
+        step="0.01"
+        name="nonbillable_training_time"
+        id="nonbillable_training_time"
+        value="{{ entry.nonbillable_training_time }}"
+      />
+
+      <label for="unavailable_time">Unavailable Time:</label>
+      <input
+        type="number"
+        step="0.01"
+        name="unavailable_time"
+        id="unavailable_time"
+        value="{{ entry.unavailable_time }}"
+      />
+
+      <label for="total_time">Total Time:</label>
+      <input
+        type="number"
+        step="0.01"
+        name="total_time"
+        id="total_time"
+        value="{{ entry.total_time }}"
+      />
+
+      <button type="submit">Update Entry</button>
+    </form>
+
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %}
+    <ul>
+      {% for category, message in messages %}
+      <li class="{{ category }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %} {% endwith %}
+  </body>
+</html>
