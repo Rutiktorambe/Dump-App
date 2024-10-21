@@ -81,6 +81,26 @@ def submit_timesheet():
     comments = request.form['comments']
     project_code = request.form['project_code']
 
+
+    # Initialize default values for billable and non-billable time
+    billable_time =0
+    nonbillable_admin_time = 0
+    nonbillable_training_time = 0
+
+    # Determine time based on allocation type and categories
+    if allocation_type == 'Billable':
+        billable_time = total_time
+    elif allocation_type == 'Non-Billable':
+        if category_1 == 'Admin':
+            nonbillable_admin_time = total_time
+        elif category_1 == 'Training':
+            nonbillable_training_time = total_time
+
+    # Logging for debugging purposes
+    print(f"Billable Time: {billable_time}")
+    print(f"Non-Billable Admin Time: {nonbillable_admin_time}")
+    print(f"Non-Billable Training Time: {nonbillable_training_time}")
+
     # Split the selected dates and create entries for each date
     for date in dates.split(','):
         new_entry = TimesheetEntry(
@@ -99,7 +119,12 @@ def submit_timesheet():
             category_3=category_3,
             comments=comments,
             project_code=project_code,
-            entry_timestamp=time.time()  # Current timestamp
+            entry_timestamp=time.time() , # Current timestamp
+            billable_time = billable_time,
+            nonbillable_admin_time= nonbillable_admin_time,
+            nonbillable_training_time=nonbillable_training_time
+
+
         )
         db.session.add(new_entry)
 
