@@ -61,7 +61,6 @@ def timesheet_home():
 def fill_timesheet():
     return render_template('fill_timesheet.html', user=current_user)
 
-
 @app.route('/submit_timesheet', methods=['POST'])
 @login_required
 def submit_timesheet():
@@ -71,14 +70,14 @@ def submit_timesheet():
     lname = request.form['lname']
     team = request.form['team']
     manager_name = request.form['manager_name']
-    dates = request.form['dates']  # This will be a comma-separated string of dates
+    dates = request.form['dates']  # Comma-separated string of dates
     duration_hours = int(request.form['duration_hours'])
     duration_minutes = int(request.form['duration_minutes'])
     total_time = float(request.form['total_time'])
     allocation_type = request.form['allocation_type']
     category_1 = request.form['category_1']
-    category_2 = request.form.get('category_2')  # Optional
-    category_3 = request.form.get('category_3')  # Optional
+    category_2 = request.form.get('category_2', '')  # Optional
+    category_3 = request.form.get('category_3', '')  # Optional
     comments = request.form['comments']
     project_code = request.form['project_code']
 
@@ -100,21 +99,22 @@ def submit_timesheet():
             category_3=category_3,
             comments=comments,
             project_code=project_code,
-            entry_timestamp=time.time()  # Assuming current timestamp
+            entry_timestamp=time.time()  # Current timestamp
         )
         db.session.add(new_entry)
-    
+
     db.session.commit()
 
     return redirect(url_for('timesheet_home'))
 
-from datetime import datetime, timedelta
 
 @app.route('/view_summary', methods=['GET'])
 @login_required
 def view_summary():
     # Get the date parameter or use the current date
     selected_date_str = request.args.get('date', datetime.today().strftime('%Y-%m-%d'))
+    
+    # Convert the string to a date object if needed
     selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
 
     # Calculate the start and end dates for the week (Monday to Sunday)
@@ -122,9 +122,10 @@ def view_summary():
     end_date = start_date + timedelta(days=6)  # Sunday
 
     # Query the database for timesheet entries for this week
+    # No need to use strftime here, as the date field is already a DATE type
     entries = TimesheetEntry.query.filter(
-        TimesheetEntry.date >= start_date.strftime('%Y-%m-%d'),
-        TimesheetEntry.date <= end_date.strftime('%Y-%m-%d'),
+        TimesheetEntry.date >= start_date,
+        TimesheetEntry.date <= end_date,
         TimesheetEntry.employee_id == current_user.EmployeeID
     ).all()
 
@@ -142,7 +143,7 @@ def view_summary():
 
     # Add values from the database entries to the corresponding days in the summary
     for entry in entries:
-        entry_date = datetime.strptime(entry.date, '%Y-%m-%d').date()  # Convert entry date
+        entry_date = entry.date  # Already a date object from the database
         summary[entry_date]['billable_time'] += entry.billable_time or 0
         summary[entry_date]['nonbillable_admin_time'] += entry.nonbillable_admin_time or 0
         summary[entry_date]['nonbillable_training_time'] += entry.nonbillable_training_time or 0
@@ -159,6 +160,7 @@ def view_summary():
     }
 
     return render_template('view_summary.html', summary=summary, overall_totals=overall_totals, start_date=start_date, end_date=end_date)
+
 
 from datetime import timedelta
 
@@ -191,6 +193,54 @@ def view_summary_by_date(date):
     return render_template('view_entries.html', entries=entries, selected_date=date)
 
 
+
+@app.route('/edit_entry/<int:entry_id>', methods=['GET', 'POST'])
+@login_required
+def edit_entry(entry_id):
+    # Fetch the entry by ID from the database
+    entry = TimesheetEntry.query.get_or_404(entry_id)
+    
+    if request.method == 'POST':
+        try:
+            # Get form data from the request
+            entry.date = request.form['date']
+            entry.duration_hours = int(request.form['duration_hours'])
+            entry.duration_minutes = int(request.form['duration_minutes'])
+            entry.total_time = float(request.form['total_time'])
+            entry.allocation_type = request.form['allocation_type']
+            entry.category_1 = request.form['category_1']
+            entry.category_2 = request.form['category_2']
+            entry.category_3 = request.form['category_3']
+            entry.comments = request.form['comments']
+            entry.project_code = request.form['project_code']
+            
+            # Save the updated entry back to the database
+            db.session.commit()
+            flash('Timesheet entry updated successfully!', 'success')
+            return redirect(url_for('view_summary_by_date', date=entry.date))
+
+        except Exception as e:
+            db.session.rollback()  # In case of an error, rollback the changes
+            flash(f'Error updating entry: {str(e)}', 'error')
+    
+    # Render the edit form with the existing entry details
+    return render_template('edit_entry.html', entry=entry)
+
+
+
+@app.route('/delete_entry/<int:entry_id>', methods=['POST'])
+@login_required
+def delete_entry(entry_id):
+    entry = TimesheetEntry.query.get(entry_id)
+    
+    if entry:
+        db.session.delete(entry)
+        db.session.commit()
+        flash('Entry deleted successfully', 'success')
+    else:
+        flash('Entry not found', 'error')
+    
+    return redirect(url_for('view_summary_by_date', date=entry.date))
 
 
 if __name__ == '__main__':

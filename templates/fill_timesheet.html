@@ -68,24 +68,18 @@
       /><br />
 
       <label for="duration_hours">Duration Hours:</label>
-      <input
-        type="number"
-        id="duration_hours"
-        name="duration_hours"
-        min="0"
-        max="24"
-        required
-      /><br />
+      <select id="duration_hours" name="duration_hours">
+        {% for hour in range(0, 24) %}
+        <option value="{{ hour }}">{{ hour }}</option>
+        {% endfor %}</select
+      ><br />
 
       <label for="duration_minutes">Duration Minutes:</label>
-      <input
-        type="number"
-        id="duration_minutes"
-        name="duration_minutes"
-        min="0"
-        max="59"
-        required
-      /><br />
+      <select id="duration_minutes" name="duration_minutes">
+        {% for minute in range(0, 60, 5) %}
+        <option value="{{ minute }}">{{ minute }}</option>
+        {% endfor %}</select
+      ><br />
 
       <label for="total_time">Total Time (Hours):</label>
       <input type="number" id="total_time" name="total_time" readonly /><br />
@@ -93,30 +87,30 @@
       <label for="allocation_type">Allocation Type:</label>
       <select id="allocation_type" name="allocation_type" required>
         <option value="Billable">Billable</option>
-        <option value="Non-billable">Non-billable</option></select
+        <option value="Non-Billable">Non-Billable</option></select
       ><br />
 
       <label for="category_1">Category 1:</label>
-      <select id="category_1" name="category_1" required>
-        <option value="Admin">Admin</option>
-        <option value="Training">Training</option></select
+      <select id="category_1" name="category_1" required></select
       ><br />
 
-      <label for="category_2">Category 2 (Optional):</label>
-      <input type="text" id="category_2" name="category_2" /><br />
+      <label for="category_2">Category 2:</label>
+      <select id="category_2" name="category_2"></select
+      ><br />
 
-      <label for="category_3">Category 3 (Optional):</label>
-      <input type="text" id="category_3" name="category_3" /><br />
+      <label for="category_3">Category 3:</label>
+      <select id="category_3" name="category_3"></select
+      ><br />
 
       <label for="comments">Comments:</label>
       <textarea id="comments" name="comments"></textarea><br />
 
       <label for="project_code">Project Code:</label>
       <select id="project_code" name="project_code" required>
-        <option value="">Select a Project Code</option>
-        <option value="PROJ001">PROJ001</option>
-        <option value="PROJ002">PROJ002</option>
-        <!-- Add more project codes dynamically from the database if needed --></select
+        <option value="101">101</option>
+        <option value="P102">P102</option>
+        <option value="P103">P103</option>
+        <option value="P104">P104</option></select
       ><br />
 
       <button type="submit">Submit Timesheet</button>
@@ -142,6 +136,61 @@
           parseInt(document.getElementById("duration_minutes").value) || 0;
         let totalTime = hours + minutes / 60;
         document.getElementById("total_time").value = totalTime.toFixed(2);
+      }
+
+      // Dynamic interconnection between allocation type and category dropdowns
+      const allocationTypeField = document.getElementById("allocation_type");
+      const category1Field = document.getElementById("category_1");
+      const category2Field = document.getElementById("category_2");
+      const category3Field = document.getElementById("category_3");
+
+      const categories = {
+        Billable: {
+          "Cat B1": ["B1.1", "B1.2"],
+          "Cat B2": ["B2.1", "B2.2"],
+        },
+        "Non-Billable": {
+          Admin: ["A1", "A2"],
+          Training: ["T1", "T2"],
+        },
+      };
+
+      const subCategories = {
+        A1: ["A1.1", "A1.2", "A1.3"],
+        A2: ["A2.1", "A2.2", "A2.3"],
+        T1: ["T1.1", "T1.2", "T1.3"],
+        T2: ["T2.1", "T2.2", "T2.3"],
+      };
+
+      allocationTypeField.addEventListener("change", function () {
+        let allocationType = this.value;
+        updateCategoryOptions(category1Field, categories[allocationType]);
+        category2Field.innerHTML = "";
+        category3Field.innerHTML = "";
+      });
+
+      category1Field.addEventListener("change", function () {
+        let selectedCategory1 = this.value;
+        updateCategoryOptions(
+          category2Field,
+          categories[allocationTypeField.value][selectedCategory1]
+        );
+        category3Field.innerHTML = "";
+      });
+
+      category2Field.addEventListener("change", function () {
+        let selectedCategory2 = this.value;
+        updateCategoryOptions(category3Field, subCategories[selectedCategory2]);
+      });
+
+      function updateCategoryOptions(field, options) {
+        field.innerHTML = "";
+        for (const option in options) {
+          let opt = document.createElement("option");
+          opt.value = option;
+          opt.textContent = option;
+          field.appendChild(opt);
+        }
       }
     </script>
   </body>

@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Edit Timesheet Entry</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <h2>Edit Timesheet Entry for {{ entry.date }}</h2>
@@ -16,61 +20,195 @@
     </nav>
 
     <form method="POST">
-      <label for="billable_time">Billable Time:</label>
+      <label for="employee_id">Employee ID:</label>
       <input
-        type="number"
-        step="0.01"
-        name="billable_time"
-        id="billable_time"
-        value="{{ entry.billable_time }}"
-      />
+        type="text"
+        id="employee_id"
+        name="employee_id"
+        value="{{ entry.employee_id }}"
+        readonly
+      /><br />
 
-      <label for="nonbillable_admin_time">Non-billable Admin Time:</label>
+      <label for="fname">First Name:</label>
       <input
-        type="number"
-        step="0.01"
-        name="nonbillable_admin_time"
-        id="nonbillable_admin_time"
-        value="{{ entry.nonbillable_admin_time }}"
-      />
+        type="text"
+        id="fname"
+        name="fname"
+        value="{{ entry.fname }}"
+        readonly
+      /><br />
 
-      <label for="nonbillable_training_time">Non-billable Training Time:</label>
+      <label for="lname">Last Name:</label>
       <input
-        type="number"
-        step="0.01"
-        name="nonbillable_training_time"
-        id="nonbillable_training_time"
-        value="{{ entry.nonbillable_training_time }}"
-      />
+        type="text"
+        id="lname"
+        name="lname"
+        value="{{ entry.lname }}"
+        readonly
+      /><br />
 
-      <label for="unavailable_time">Unavailable Time:</label>
+      <label for="team">Team:</label>
       <input
-        type="number"
-        step="0.01"
-        name="unavailable_time"
-        id="unavailable_time"
-        value="{{ entry.unavailable_time }}"
-      />
+        type="text"
+        id="team"
+        name="team"
+        value="{{ entry.team }}"
+        readonly
+      /><br />
 
-      <label for="total_time">Total Time:</label>
+      <label for="manager_name">Manager Name:</label>
+      <input
+        type="text"
+        id="manager_name"
+        name="manager_name"
+        value="{{ entry.manager_name }}"
+        readonly
+      /><br />
+
+      <label for="date">Select Date:</label>
+      <input
+        type="text"
+        id="date"
+        name="date"
+        value="{{ entry.date }}"
+        placeholder="Select Date"
+        required
+      /><br />
+
+      <label for="duration_hours">Duration Hours:</label>
+      <select id="duration_hours" name="duration_hours">
+        {% for hour in range(0, 24) %}
+        <option value="{{ hour }}" {% if entry.duration_hours == hour %}selected{% endif %}>{{ hour }}</option>
+        {% endfor %}</select
+      ><br />
+
+      <label for="duration_minutes">Duration Minutes:</label>
+      <select id="duration_minutes" name="duration_minutes">
+        {% for minute in range(0, 60, 5) %}
+        <option value="{{ minute }}" {% if entry.duration_minutes == minute %}selected{% endif %}>{{ minute }}</option>
+        {% endfor %}</select
+      ><br />
+
+      <label for="total_time">Total Time (Hours):</label>
       <input
         type="number"
-        step="0.01"
-        name="total_time"
         id="total_time"
+        name="total_time"
         value="{{ entry.total_time }}"
-      />
+        readonly
+      /><br />
+
+      <label for="allocation_type">Allocation Type:</label>
+      <select id="allocation_type" name="allocation_type" required>
+        <option value="Billable" {% if entry.allocation_type == 'Billable' %}selected{% endif %}>Billable</option>
+        <option value="Non-Billable" {% if entry.allocation_type == 'Non-Billable' %}selected{% endif %}>Non-Billable</option></select
+      ><br />
+
+      <label for="category_1">Category 1:</label>
+      <select id="category_1" name="category_1" required>
+        <option value="{{ entry.category_1 }}">{{ entry.category_1 }}</option></select
+      ><br />
+
+      <label for="category_2">Category 2:</label>
+      <select id="category_2" name="category_2">
+        <option value="{{ entry.category_2 }}">{{ entry.category_2 }}</option></select
+      ><br />
+
+      <label for="category_3">Category 3:</label>
+      <select id="category_3" name="category_3">
+        <option value="{{ entry.category_3 }}">{{ entry.category_3 }}</option></select
+      ><br />
+
+      <label for="comments">Comments:</label>
+      <textarea id="comments" name="comments">{{ entry.comments }}</textarea><br />
+
+      <label for="project_code">Project Code:</label>
+      <select id="project_code" name="project_code" required>
+        <option value="101" {% if entry.project_code == '101' %}selected{% endif %}>101</option>
+        <option value="P102" {% if entry.project_code == 'P102' %}selected{% endif %}>P102</option>
+        <option value="P103" {% if entry.project_code == 'P103' %}selected{% endif %}>P103</option>
+        <option value="P104" {% if entry.project_code == 'P104' %}selected{% endif %}>P104</option></select
+      ><br />
 
       <button type="submit">Update Entry</button>
     </form>
 
-    {% with messages = get_flashed_messages(with_categories=true) %} {% if
-    messages %}
-    <ul>
-      {% for category, message in messages %}
-      <li class="{{ category }}">{{ message }}</li>
-      {% endfor %}
-    </ul>
-    {% endif %} {% endwith %}
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+      // Initialize the date picker with single-select option for editing
+      flatpickr("#date", { dateFormat: "Y-m-d" });
+
+      // Automatically calculate total time based on duration hours and minutes
+      document
+        .getElementById("duration_hours")
+        .addEventListener("input", calculateTotalTime);
+      document
+        .getElementById("duration_minutes")
+        .addEventListener("input", calculateTotalTime);
+
+      function calculateTotalTime() {
+        let hours =
+          parseInt(document.getElementById("duration_hours").value) || 0;
+        let minutes =
+          parseInt(document.getElementById("duration_minutes").value) || 0;
+        let totalTime = hours + minutes / 60;
+        document.getElementById("total_time").value = totalTime.toFixed(2);
+      }
+
+      // Dynamic interconnection between allocation type and category dropdowns
+      const allocationTypeField = document.getElementById("allocation_type");
+      const category1Field = document.getElementById("category_1");
+      const category2Field = document.getElementById("category_2");
+      const category3Field = document.getElementById("category_3");
+
+      const categories = {
+        Billable: {
+          "Cat B1": ["B1.1", "B1.2"],
+          "Cat B2": ["B2.1", "B2.2"],
+        },
+        "Non-Billable": {
+          Admin: ["A1", "A2"],
+          Training: ["T1", "T2"],
+        },
+      };
+
+      const subCategories = {
+        A1: ["A1.1", "A1.2", "A1.3"],
+        A2: ["A2.1", "A2.2", "A2.3"],
+        T1: ["T1.1", "T1.2", "T1.3"],
+        T2: ["T2.1", "T2.2", "T2.3"],
+      };
+
+      allocationTypeField.addEventListener("change", function () {
+        let allocationType = this.value;
+        updateCategoryOptions(category1Field, categories[allocationType]);
+        category2Field.innerHTML = "";
+        category3Field.innerHTML = "";
+      });
+
+      category1Field.addEventListener("change", function () {
+        let selectedCategory1 = this.value;
+        updateCategoryOptions(
+          category2Field,
+          categories[allocationTypeField.value][selectedCategory1]
+        );
+        category3Field.innerHTML = "";
+      });
+
+      category2Field.addEventListener("change", function () {
+        let selectedCategory2 = this.value;
+        updateCategoryOptions(category3Field, subCategories[selectedCategory2]);
+      });
+
+      function updateCategoryOptions(field, options) {
+        field.innerHTML = "";
+        for (const option in options) {
+          let opt = document.createElement("option");
+          opt.value = option;
+          opt.textContent = option;
+          field.appendChild(opt);
+        }
+      }
+    </script>
   </body>
 </html>
