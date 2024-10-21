@@ -6,11 +6,12 @@
     <title>Home</title>
   </head>
   <body>
-    <h2>Welcome, {{ user.Fname }} {{ user.Lname }}!</h2>
-    <p>Employee ID: {{ user.EmployeeID }}</p>
-    <nav>
-      <a href="{{ url_for('timesheet_home') }}">Timesheet</a>
-      <a href="{{ url_for('logout') }}">Logout</a>
-    </nav>
+    <h1>Welcome, {{ fname }} {{ lname }}</h1>
+
+    <div>
+      <p><strong>Employee ID:</strong> {{ employee_id }}</p>
+      <p><strong>Team:</strong> {{ team }}</p>
+      <p><strong>Manager Name:</strong> {{ manager_name }}</p>
+    </div>
   </body>
 </html>
