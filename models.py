@@ -32,7 +32,7 @@ class TimesheetEntry(db.Model):
     lname = db.Column(db.String(50))
     team = db.Column(db.String(50))
     manager_name = db.Column(db.String(50))
-    date = db.Column(db.String(10))
+    date = db.Column(db.Date(10))
     duration_hours = db.Column(db.Integer)
     duration_minutes = db.Column(db.Integer)
     billable_time = db.Column(db.Float)
