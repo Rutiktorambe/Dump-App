@@ -305,8 +305,6 @@ def delete_entry(entry_id):
     return redirect(url_for('view_summary_by_date', date=entry.date))
 
 
-
-
 @app.route('/success')
 @login_required
 def success():
@@ -318,6 +316,25 @@ def success():
                            role=current_user.Role,
                            email=current_user.Email
                            )
+
+
+# Route for home page (protected)
+@app.route('/error')
+@login_required
+def error():
+    return render_template('error/error.html',employee_id=current_user.EmployeeID, 
+                           fname=current_user.Fname, 
+                           lname=current_user.Lname, 
+                           team=current_user.Team, 
+                           manager_name=current_user.ManagerName,
+                           role=current_user.Role,
+                           email=current_user.Email)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return  redirect(url_for('error'))
+
+
 
 
 if __name__ == '__main__':
